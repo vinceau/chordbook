@@ -47,3 +47,16 @@ alternate spellings and enharmonic roots work automatically.
 | `npm run build`   | Type-check and build      |
 | `npm run preview` | Preview the production build |
 | `npm run lint`    | Run Oxlint                |
+
+## Deployment
+
+Pushing to `main` or `master` runs
+`.github/workflows/deploy.yml`, builds the app, and deploys `dist` to GitHub
+Pages. The workflow sets `VITE_BASE=/chordbook/` so assets resolve correctly
+under the project Pages URL:
+
+https://vince.id.au/chordbook/
+
+(`https://vinceau.github.io/chordbook/` redirects there.)
+
+You can also trigger the workflow manually from the Actions tab.
