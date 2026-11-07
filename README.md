@@ -5,6 +5,8 @@ space-separated list of chord names and the chord diagrams update as you type.
 The current list is kept in the `chords` URL query parameter, so the page can be
 bookmarked or shared.
 
+![Screenshot of Chordbook](./screenshot.png)
+
 ## Getting started
 
 ```bash
