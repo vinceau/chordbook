@@ -50,7 +50,7 @@ alternate spellings and enharmonic roots work automatically.
 
 ## Deployment
 
-Pushing to `main` or `master` runs
+Pushing to `master` runs
 `.github/workflows/deploy.yml`, builds the app, and deploys `dist` to GitHub
 Pages. The workflow sets `VITE_BASE=/chordbook/` so assets resolve correctly
 under the project Pages URL:
