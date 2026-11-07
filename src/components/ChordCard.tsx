@@ -80,14 +80,19 @@ export function ChordCard({ chord, variant, onVariantChange }: ChordCardProps) {
             >
               <ChevronIcon direction="right" />
             </button>
-            <p className="chord-card__variant">
-              <span aria-hidden="true">
-                {activeVariant + 1}/{shapeCount}
-              </span>
-              <span className="visually-hidden" aria-live="polite">
-                Shape {activeVariant + 1} of {shapeCount}
-              </span>
-            </p>
+            <div className="chord-card__dots" aria-hidden="true">
+              {shapes.map((_, index) => (
+                <span
+                  key={index}
+                  className={`chord-card__dot${
+                    index === activeVariant ? ' chord-card__dot--active' : ''
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="visually-hidden" aria-live="polite">
+              Shape {activeVariant + 1} of {shapeCount}
+            </span>
           </>
         ) : null}
       </div>

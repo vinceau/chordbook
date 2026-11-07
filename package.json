@@ -7,16 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
-    "variants": "node scripts/generate-variants.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
+    "@tombatossals/chords-db": "^0.5.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "svguitar": "^2.10.1"
   },
   "devDependencies": {
-    "@tombatossals/chords-db": "^0.5.1",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

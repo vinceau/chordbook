@@ -414,14 +414,38 @@
   height: 14px;
 }
 
-.chord-card__variant {
-  margin: 9px 0 0;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.chord-card__dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  height: 8px;
+  margin-top: 10px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.chord-card:hover .chord-card__dots,
+.chord-card:focus-within .chord-card__dots {
+  opacity: 1;
+}
+
+.chord-card__dot {
+  width: 7px;
+  height: 7px;
+  background: transparent;
+  border: 1px solid rgba(78, 61, 39, 0.42);
+  border-radius: 50%;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.chord-card__dot--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.15);
 }
 
 .chord-diagram {
@@ -568,12 +592,16 @@
   }
 }
 
-/* Touch screens have no hover state, so keep the shape chevrons visible. */
+/* Touch screens have no hover state, so keep the shape controls visible. */
 @media (hover: none) {
   .chord-card__nav {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-50%) scale(1);
+  }
+
+  .chord-card__dots {
+    opacity: 1;
   }
 }
 
@@ -581,6 +609,8 @@
   .search-box,
   .chord-card,
   .chord-card__nav,
+  .chord-card__dot,
+  .chord-card__dots,
   .example-chip {
     transition: none;
   }

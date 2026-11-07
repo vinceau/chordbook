@@ -278,15 +278,7 @@ function App() {
 
       <footer className="site-footer">
         <p>
-          Shapes from the{' '}
-          <a
-            href="https://github.com/edonv/edonv.github.io/blob/master/js/json/guitar.json"
-            target="_blank"
-            rel="noreferrer"
-          >
-            ChordPro guitar library
-          </a>{' '}
-          and{' '}
+          Shapes from{' '}
           <a
             href="https://github.com/tombatossals/chords-db"
             target="_blank"

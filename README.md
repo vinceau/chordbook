@@ -31,8 +31,8 @@ npm run preview
 - **Enharmonic roots** — `C#` and `Db`, `A#` and `Bb`, and other equivalents
   share shapes.
 - **Chord variants** — every chord has several voicings. Hover a card to reveal
-  small left/right chevrons and step through them; the counter underneath shows
-  which shape you are looking at.
+  small left/right chevrons and step through them; the dots underneath show
+  which voicing you are looking at.
 - **Shareable URLs** — e.g. `/?chords=C,G,Am,F` (the comma-separated value is
   URL-encoded as needed, so `C#` appears as `C%23`). Selected voicings are
   stored alongside it, e.g. `/?chords=C,G,Am,F&variant=1,0,0,2`.
@@ -41,27 +41,24 @@ npm run preview
 
 ## Chord data
 
-The default shape for each chord lives in `src/data/guitar.json` and comes from
-the
-[ChordPro guitar chord library](https://github.com/edonv/edonv.github.io/blob/master/js/json/guitar.json).
-`src/lib/chords.ts` resolves aliases and indexes the shapes by pitch class, so
-alternate spellings and enharmonic roots work automatically.
+All shapes come straight from the
+[chords-db](https://github.com/tombatossals/chords-db) guitar database (MIT),
+imported from the pinned `@tombatossals/chords-db` package. No chord data is
+stored in this repository.
 
-The extra voicings live in `src/data/variants.json`, generated from the
-[chords-db](https://github.com/tombatossals/chords-db) guitar database (MIT).
-`npm run variants` rebuilds that file from the pinned
-`@tombatossals/chords-db` package and drops any position that does not spell the
-chord it is filed under.
+`src/lib/chords.ts` maps chords-db suffixes to the qualities the search box
+understands, indexes the shapes by pitch class + quality (so enharmonic roots
+such as `C#` and `Db` share diagrams), and drops the handful of positions that
+do not spell the chord they are filed under.
 
 ## Scripts
 
-| Command             | Description                                |
-| ------------------- | ------------------------------------------ |
-| `npm run dev`       | Start the Vite dev server                  |
-| `npm run build`     | Type-check and build                       |
-| `npm run preview`   | Preview the production build               |
-| `npm run lint`      | Run Oxlint                                 |
-| `npm run variants`  | Regenerate `src/data/variants.json`        |
+| Command           | Description              |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start the Vite dev server |
+| `npm run build`   | Type-check and build      |
+| `npm run preview` | Preview the production build |
+| `npm run lint`    | Run Oxlint                |
 
 ## Deployment
 

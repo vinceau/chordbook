@@ -5,4 +5,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
   plugins: [react()],
+  build: {
+    // The chords-db guitar dataset is bundled and dominates the chunk size.
+    chunkSizeWarningLimit: 700,
+  },
 })

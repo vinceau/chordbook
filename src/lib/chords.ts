@@ -1,5 +1,4 @@
-import rawChordData from '../data/guitar.json'
-import rawVariantData from '../data/variants.json'
+import rawChordsDb from '@tombatossals/chords-db/lib/guitar.json'
 
 export type ChordQuality =
   | 'major'
@@ -21,11 +20,25 @@ export type ChordQuality =
   | '11'
   | 'nc'
 
+interface RawChordPosition {
+  /** Six fret values, relative to `baseFret`, low E to high E. */
+  frets: number[]
+  /** The first fret shown in the diagram. */
+  baseFret?: number
+  /** Barre frets, relative to `baseFret`. */
+  barres?: number[]
+}
+
 interface RawChordEntry {
-  name?: string
-  base?: number
-  frets?: number[]
-  copy?: string
+  /** Root of the chord, e.g. "C#" or "Bb". */
+  key: string
+  /** chords-db name for the chord quality, e.g. "maj7". */
+  suffix: string
+  positions: RawChordPosition[]
+}
+
+interface RawChordsDb {
+  chords: Record<string, RawChordEntry[]>
 }
 
 export interface ChordShape {
@@ -33,13 +46,8 @@ export interface ChordShape {
   base: number
   /** Six fret values, from the low E string to the high E string. */
   frets: number[]
-  /** The key used by the chord library, e.g. "Cmaj7". */
-  sourceName: string
-  /**
-   * Frets (relative to `base`) that are held as a barre. Only the extra
-   * shapes from chords-db know this; the primary shapes have to be inferred.
-   */
-  barres?: number[]
+  /** Frets (relative to `base`) that are held as a barre. */
+  barres: number[]
 }
 
 export interface ResolvedChord {
@@ -52,12 +60,7 @@ export interface ResolvedChord {
   error?: 'unrecognized' | 'missing'
 }
 
-const chordData = rawChordData as unknown as Record<string, RawChordEntry>
-
-/** [base fret, frets relative to base, barre frets relative to base] */
-type VariantTuple = [number, number[], number[]]
-
-const variantData = rawVariantData as unknown as Record<string, VariantTuple[]>
+const chordsDb = rawChordsDb as unknown as RawChordsDb
 
 const LETTER_SEMITONES: Record<string, number> = {
   C: 0,
@@ -89,6 +92,52 @@ const QUALITY_LABELS: Record<ChordQuality, string> = {
   '11': '11',
   nc: '',
 }
+
+/** chords-db suffix for each quality we understand. */
+const QUALITY_BY_SUFFIX: Record<string, ChordQuality> = {
+  major: 'major',
+  minor: 'minor',
+  '7': '7',
+  maj7: 'maj7',
+  m7: 'm7',
+  dim: 'dim',
+  dim7: 'dim7',
+  m7b5: 'm7b5',
+  aug: 'aug',
+  sus4: 'sus4',
+  sus2: 'sus2',
+  '6': '6',
+  m6: 'm6',
+  '9': '9',
+  m9: 'm9',
+  add9: 'add9',
+  '11': '11',
+}
+
+/** Semitones in each quality, used to reject mislabelled chords-db shapes. */
+const QUALITY_INTERVALS: Record<ChordQuality, number[]> = {
+  major: [0, 4, 7],
+  minor: [0, 3, 7],
+  '7': [0, 4, 7, 10],
+  maj7: [0, 4, 7, 11],
+  m7: [0, 3, 7, 10],
+  dim: [0, 3, 6],
+  dim7: [0, 3, 6, 9],
+  m7b5: [0, 3, 6, 10],
+  aug: [0, 4, 8],
+  sus4: [0, 5, 7],
+  sus2: [0, 2, 7],
+  '6': [0, 4, 7, 9],
+  m6: [0, 3, 7, 9],
+  '9': [0, 2, 4, 7, 10],
+  m9: [0, 2, 3, 7, 10],
+  add9: [0, 2, 4, 7],
+  '11': [0, 2, 4, 5, 7, 10],
+  nc: [],
+}
+
+/** Open strings, low E to high E, as pitch classes. */
+const TUNING = [4, 9, 2, 7, 11, 4]
 
 /**
  * Lowercase aliases. Uppercase "M" is handled before this table so that
@@ -209,31 +258,6 @@ function parseChordName(input: string): ParsedChordName | null {
   }
 }
 
-/**
- * The source file uses "copy" to point at another chord shape. Follow those
- * links until a concrete set of frets is found.
- */
-function resolveRawShape(
-  key: string,
-  seen: Set<string> = new Set(),
-): ChordShape | null {
-  if (seen.has(key)) return null
-  seen.add(key)
-
-  const entry = chordData[key]
-  if (!entry) return null
-
-  if (entry.copy) return resolveRawShape(entry.copy, seen)
-
-  if (!entry.frets || entry.frets.length !== 6) return null
-
-  return {
-    base: entry.base ?? 1,
-    frets: entry.frets,
-    sourceName: entry.name ?? key,
-  }
-}
-
 function isSameShape(a: ChordShape, b: ChordShape): boolean {
   return (
     a.base === b.base &&
@@ -243,34 +267,57 @@ function isSameShape(a: ChordShape, b: ChordShape): boolean {
 }
 
 /**
- * Index every concrete shape by pitch class + quality. Enharmonic spellings
- * such as C#/Db and A#/Bb therefore resolve to the same diagrams.
- *
- * The library in `guitar.json` comes first (so it stays the default shape for
- * every chord) and the additional voicings from chords-db follow after it.
+ * A handful of chords-db positions do not spell the chord they are filed
+ * under. Check every sounded note against the chord tones and skip the rest.
+ */
+function spellsChord(
+  shape: ChordShape,
+  root: number,
+  quality: ChordQuality,
+): boolean {
+  const allowed = new Set(
+    QUALITY_INTERVALS[quality].map((interval) => (root + interval) % 12),
+  )
+
+  return shape.frets.every((fret, string) => {
+    if (fret < 0) return true
+    const absoluteFret = fret === 0 ? 0 : shape.base + fret - 1
+    return allowed.has((TUNING[string] + absoluteFret) % 12)
+  })
+}
+
+/**
+ * Index every shape in chords-db by pitch class + quality. Enharmonic
+ * spellings such as C#/Db and A#/Bb therefore resolve to the same diagrams.
  */
 const shapesByNoteAndQuality = (() => {
   const index = new Map<string, ChordShape[]>()
 
-  const add = (id: string, shape: ChordShape) => {
-    const shapes = index.get(id) ?? []
-    if (shapes.some((existing) => isSameShape(existing, shape))) return
+  for (const entries of Object.values(chordsDb.chords)) {
+    for (const entry of entries) {
+      const quality = QUALITY_BY_SUFFIX[entry.suffix]
+      if (!quality) continue
 
-    shapes.push(shape)
-    index.set(id, shapes)
-  }
+      const root = parseChordName(entry.key)?.pitchClass
+      if (root === undefined) continue
 
-  for (const key of Object.keys(chordData)) {
-    const parsed = parseChordName(key)
-    const shape = resolveRawShape(key)
-    if (!parsed || !parsed.quality || !shape || parsed.quality === 'nc') continue
+      const id = `${root}:${quality}`
+      const shapes = index.get(id) ?? []
 
-    add(`${parsed.pitchClass}:${parsed.quality}`, shape)
-  }
+      for (const position of entry.positions) {
+        const shape: ChordShape = {
+          base: position.baseFret ?? 1,
+          frets: position.frets,
+          barres: position.barres ?? [],
+        }
 
-  for (const [id, variants] of Object.entries(variantData)) {
-    for (const [base, frets, barres] of variants) {
-      add(id, { base, frets, sourceName: id, barres })
+        if (!spellsChord(shape, root, quality)) continue
+        if (shapes.some((existing) => isSameShape(existing, shape))) continue
+
+        shapes.push(shape)
+      }
+
+      index.set(id, shapes)
     }
   }
 
@@ -292,7 +339,7 @@ export function resolveChord(input: string): ResolvedChord {
         {
           base: 1,
           frets: [-1, -1, -1, -1, -1, -1],
-          sourceName: 'NC',
+          barres: [],
         },
       ],
     }
@@ -311,7 +358,7 @@ export function resolveChord(input: string): ResolvedChord {
     `${parsed.pitchClass}:${parsed.quality}`,
   )
 
-  if (!shapes) {
+  if (!shapes || shapes.length === 0) {
     return { input, displayName: parsed.displayName, shapes: [], error: 'missing' }
   }
 

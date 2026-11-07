@@ -14,53 +14,6 @@ interface BarreCandidate {
 }
 
 /**
- * The source data only stores frets, not barres. Look for a repeated fret
- * that jumps over at least one higher fret — that is the usual visual
- * signature of a barre chord in this library.
- */
-function findBarre(frets: number[]): BarreCandidate | null {
-  let candidate: BarreCandidate | null = null
-
-  for (let index = 2; index < frets.length; index += 1) {
-    const fret = frets[index]
-    if (fret <= 0) continue
-
-    const previousFrets = frets.slice(0, index - 1)
-    const matchingIndex = previousFrets.findIndex((otherFret, otherIndex, all) => {
-      const fretBetween = all[otherIndex + 1]
-      return (
-        otherFret === fret &&
-        typeof fretBetween === 'number' &&
-        fretBetween > fret
-      )
-    })
-
-    if (matchingIndex === -1) continue
-
-    const fromString = frets.length - matchingIndex
-    const toString = frets.length - index
-
-    if (!candidate) {
-      candidate = { fret, fromString, toString }
-    } else if (candidate.fret === fret) {
-      candidate.fromString = Math.max(candidate.fromString, fromString)
-      candidate.toString = Math.min(candidate.toString, toString)
-    }
-  }
-
-  if (!candidate) return null
-
-  // A barre cannot run across a muted or open string.
-  const fromIndex = frets.length - candidate.fromString
-  const toIndex = frets.length - candidate.toString
-  for (let index = fromIndex; index <= toIndex; index += 1) {
-    if (frets[index] < candidate.fret) return null
-  }
-
-  return candidate
-}
-
-/**
  * chords-db stores barres as a list of fret numbers, so find the strings a
  * barre covers by looking for every note on that fret.
  */
@@ -113,12 +66,7 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
 
     container.replaceChildren()
 
-    const inferredBarre = findBarre(shape.frets)
-    const barres = shape.barres
-      ? barresFromFrets(shape.frets, shape.barres)
-      : inferredBarre
-        ? [inferredBarre]
-        : []
+    const barres = barresFromFrets(shape.frets, shape.barres)
 
     const highestFret = Math.max(
       0,
