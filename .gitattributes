@@ -1,0 +1,6 @@
+*       text    eol=lf
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+package-lock.json linguist-generated=true
