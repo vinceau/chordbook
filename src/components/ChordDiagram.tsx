@@ -60,14 +60,44 @@ function findBarre(frets: number[]): BarreCandidate | null {
   return candidate
 }
 
-function toFingers(frets: number[], barre: BarreCandidate | null): Finger[] {
+/**
+ * chords-db stores barres as a list of fret numbers, so find the strings a
+ * barre covers by looking for every note on that fret.
+ */
+function barresFromFrets(frets: number[], barreFrets: number[]): BarreCandidate[] {
+  return barreFrets.flatMap((fret) => {
+    const indexes: number[] = []
+    frets.forEach((value, index) => {
+      if (value === fret) indexes.push(index)
+    })
+
+    if (indexes.length < 2) return []
+
+    return [
+      {
+        fret,
+        fromString: frets.length - indexes[0],
+        toString: frets.length - indexes[indexes.length - 1],
+      },
+    ]
+  })
+}
+
+function toFingers(frets: number[], barres: BarreCandidate[]): Finger[] {
   return frets
     .map((fret, index): Finger | null => {
       const string = frets.length - index
 
       if (fret < 0) return [string, 'x']
       if (fret === 0) return [string, 0]
-      if (barre && fret === barre.fret) return null
+
+      const coveredByBarre = barres.some(
+        (barre) =>
+          fret === barre.fret &&
+          string <= barre.fromString &&
+          string >= barre.toString,
+      )
+      if (coveredByBarre) return null
 
       return [string, fret]
     })
@@ -83,7 +113,13 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
 
     container.replaceChildren()
 
-    const barre = findBarre(shape.frets)
+    const inferredBarre = findBarre(shape.frets)
+    const barres = shape.barres
+      ? barresFromFrets(shape.frets, shape.barres)
+      : inferredBarre
+        ? [inferredBarre]
+        : []
+
     const highestFret = Math.max(
       0,
       ...shape.frets.filter((fret) => fret > 0),
@@ -111,8 +147,8 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
         svgTitle: `${name} chord diagram`,
       })
       .chord({
-        fingers: toFingers(shape.frets, barre),
-        barres: barre ? [barre] : [],
+        fingers: toFingers(shape.frets, barres),
+        barres,
         position: shape.base,
       })
       .draw()

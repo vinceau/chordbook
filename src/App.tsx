@@ -8,6 +8,7 @@ import {
 } from './lib/chords'
 
 const CHORDS_PARAM = 'chords'
+const VARIANTS_PARAM = 'variant'
 
 const PRESETS = [
   { label: 'C G Am F', value: 'C G Am F' },
@@ -15,14 +16,31 @@ const PRESETS = [
   { label: 'C#m E B A', value: 'C#m E B A' },
 ]
 
-function readChordsFromUrl(): string {
-  const value = new URLSearchParams(window.location.search).get(CHORDS_PARAM)
-  if (value === null) return DEFAULT_CHORDS
-
-  return value.replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
+interface UrlState {
+  /** The raw chord names, as they appear in the search box. */
+  input: string
+  /** Selected shape per chord, matched to the chord list by position. */
+  variants: number[]
 }
 
-function writeChordsToUrl(input: string) {
+function readStateFromUrl(): UrlState {
+  const params = new URLSearchParams(window.location.search)
+  const value = params.get(CHORDS_PARAM)
+  const input =
+    value === null
+      ? DEFAULT_CHORDS
+      : value.replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
+
+  const selected = params.get(VARIANTS_PARAM)?.split(',') ?? []
+  const variants = parseChordInput(input).map((_, index) => {
+    const variant = Number.parseInt(selected[index] ?? '', 10)
+    return Number.isInteger(variant) && variant > 0 ? variant : 0
+  })
+
+  return { input, variants }
+}
+
+function writeStateToUrl(input: string, variants: number[]) {
   const params = new URLSearchParams(window.location.search)
   const tokens = parseChordInput(input)
 
@@ -30,6 +48,17 @@ function writeChordsToUrl(input: string) {
     params.set(CHORDS_PARAM, tokens.join(','))
   } else {
     params.delete(CHORDS_PARAM)
+  }
+
+  const selected = tokens.map((_, index) => {
+    const variant = variants[index] ?? 0
+    return Number.isFinite(variant) ? Math.max(0, Math.trunc(variant)) : 0
+  })
+
+  if (selected.some((variant) => variant > 0)) {
+    params.set(VARIANTS_PARAM, selected.join(','))
+  } else {
+    params.delete(VARIANTS_PARAM)
   }
 
   const query = params.toString().replace(/%2C/g, ',')
@@ -102,19 +131,48 @@ function EmptyState() {
 }
 
 function App() {
-  const [input, setInput] = useState(readChordsFromUrl)
+  const [{ input, variants }, setUrlState] = useState(readStateFromUrl)
   const inputRef = useRef<HTMLInputElement>(null)
   const chords = useMemo(() => resolveChordList(input), [input])
 
   useEffect(() => {
-    writeChordsToUrl(input)
-  }, [input])
+    writeStateToUrl(input, variants)
+  }, [input, variants])
 
   useEffect(() => {
-    const handlePopState = () => setInput(readChordsFromUrl())
+    const handlePopState = () => setUrlState(readStateFromUrl())
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  /**
+   * Keep the chosen shape when a chord stays in the same position, but reset
+   * it when the chord itself changes.
+   */
+  const setInput = (value: string) => {
+    setUrlState((state) => {
+      const previousTokens = parseChordInput(state.input)
+      const nextTokens = parseChordInput(value)
+
+      return {
+        input: value,
+        variants: nextTokens.map((token, index) =>
+          previousTokens[index] === token ? (state.variants[index] ?? 0) : 0,
+        ),
+      }
+    })
+  }
+
+  const changeVariant = (index: number, variant: number) => {
+    setUrlState((state) => {
+      const nextVariants = parseChordInput(state.input).map(
+        (_, position) => state.variants[position] ?? 0,
+      )
+      nextVariants[index] = variant
+
+      return { ...state, variants: nextVariants }
+    })
+  }
 
   const choosePreset = (value: string) => {
     setInput(value)
@@ -204,7 +262,12 @@ function App() {
             </div>
             <div className="chord-grid">
               {chords.map((chord, index) => (
-                <ChordCard key={`${index}:${chord.input}`} chord={chord} />
+                <ChordCard
+                  key={`${index}:${chord.input}`}
+                  chord={chord}
+                  variant={variants[index] ?? 0}
+                  onVariantChange={(variant) => changeVariant(index, variant)}
+                />
               ))}
             </div>
           </>
@@ -222,6 +285,14 @@ function App() {
             rel="noreferrer"
           >
             ChordPro guitar library
+          </a>{' '}
+          and{' '}
+          <a
+            href="https://github.com/tombatossals/chords-db"
+            target="_blank"
+            rel="noreferrer"
+          >
+            chords-db
           </a>
           , drawn with{' '}
           <a href="https://github.com/omnibrain/svguitar" target="_blank" rel="noreferrer">
@@ -230,7 +301,7 @@ function App() {
           .
         </p>
         <p className="site-footer__hint">
-          Your chord list lives in the URL — copy it to share.
+          Hover a chord for more voicings — your list lives in the URL.
         </p>
       </footer>
     </div>

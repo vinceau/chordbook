@@ -1,4 +1,5 @@
 import rawChordData from '../data/guitar.json'
+import rawVariantData from '../data/variants.json'
 
 export type ChordQuality =
   | 'major'
@@ -34,6 +35,11 @@ export interface ChordShape {
   frets: number[]
   /** The key used by the chord library, e.g. "Cmaj7". */
   sourceName: string
+  /**
+   * Frets (relative to `base`) that are held as a barre. Only the extra
+   * shapes from chords-db know this; the primary shapes have to be inferred.
+   */
+  barres?: number[]
 }
 
 export interface ResolvedChord {
@@ -41,11 +47,17 @@ export interface ResolvedChord {
   input: string
   /** Canonical spelling of the chord, e.g. "CM7" becomes "Cmaj7". */
   displayName: string
-  shape?: ChordShape
+  /** Every known shape for the chord, in display order. */
+  shapes: ChordShape[]
   error?: 'unrecognized' | 'missing'
 }
 
 const chordData = rawChordData as unknown as Record<string, RawChordEntry>
+
+/** [base fret, frets relative to base, barre frets relative to base] */
+type VariantTuple = [number, number[], number[]]
+
+const variantData = rawVariantData as unknown as Record<string, VariantTuple[]>
 
 const LETTER_SEMITONES: Record<string, number> = {
   C: 0,
@@ -222,20 +234,44 @@ function resolveRawShape(
   }
 }
 
+function isSameShape(a: ChordShape, b: ChordShape): boolean {
+  return (
+    a.base === b.base &&
+    a.frets.length === b.frets.length &&
+    a.frets.every((fret, index) => fret === b.frets[index])
+  )
+}
+
 /**
  * Index every concrete shape by pitch class + quality. Enharmonic spellings
- * such as C#/Db and A#/Bb therefore resolve to the same diagram.
+ * such as C#/Db and A#/Bb therefore resolve to the same diagrams.
+ *
+ * The library in `guitar.json` comes first (so it stays the default shape for
+ * every chord) and the additional voicings from chords-db follow after it.
  */
 const shapesByNoteAndQuality = (() => {
-  const index = new Map<string, ChordShape>()
+  const index = new Map<string, ChordShape[]>()
+
+  const add = (id: string, shape: ChordShape) => {
+    const shapes = index.get(id) ?? []
+    if (shapes.some((existing) => isSameShape(existing, shape))) return
+
+    shapes.push(shape)
+    index.set(id, shapes)
+  }
 
   for (const key of Object.keys(chordData)) {
     const parsed = parseChordName(key)
     const shape = resolveRawShape(key)
     if (!parsed || !parsed.quality || !shape || parsed.quality === 'nc') continue
 
-    const id = `${parsed.pitchClass}:${parsed.quality}`
-    if (!index.has(id)) index.set(id, shape)
+    add(`${parsed.pitchClass}:${parsed.quality}`, shape)
+  }
+
+  for (const [id, variants] of Object.entries(variantData)) {
+    for (const [base, frets, barres] of variants) {
+      add(id, { base, frets, sourceName: id, barres })
+    }
   }
 
   return index
@@ -252,35 +288,37 @@ export function resolveChord(input: string): ResolvedChord {
     return {
       input,
       displayName: 'NC',
-      shape: {
-        base: 1,
-        frets: [-1, -1, -1, -1, -1, -1],
-        sourceName: 'NC',
-      },
+      shapes: [
+        {
+          base: 1,
+          frets: [-1, -1, -1, -1, -1, -1],
+          sourceName: 'NC',
+        },
+      ],
     }
   }
 
   const parsed = parseChordName(input)
   if (!parsed) {
-    return { input, displayName: input, error: 'unrecognized' }
+    return { input, displayName: input, shapes: [], error: 'unrecognized' }
   }
 
   if (!parsed.quality) {
-    return { input, displayName: parsed.displayName, error: 'missing' }
+    return { input, displayName: parsed.displayName, shapes: [], error: 'missing' }
   }
 
-  const shape = shapesByNoteAndQuality.get(
+  const shapes = shapesByNoteAndQuality.get(
     `${parsed.pitchClass}:${parsed.quality}`,
   )
 
-  if (!shape) {
-    return { input, displayName: parsed.displayName, error: 'missing' }
+  if (!shapes) {
+    return { input, displayName: parsed.displayName, shapes: [], error: 'missing' }
   }
 
   return {
     input,
     displayName: parsed.displayName,
-    shape,
+    shapes,
   }
 }
 

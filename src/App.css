@@ -350,6 +350,80 @@
   line-height: 1.35;
 }
 
+.chord-card__shapes {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.chord-card__nav {
+  position: absolute;
+  top: 44%;
+  display: grid;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  place-items: center;
+  color: var(--ink-soft);
+  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  box-shadow: 0 6px 14px -10px rgba(61, 43, 23, 0.9);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.9);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.chord-card__nav--prev {
+  left: -5px;
+}
+
+.chord-card__nav--next {
+  right: -5px;
+}
+
+.chord-card:hover .chord-card__nav,
+.chord-card:focus-within .chord-card__nav {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.chord-card__nav:hover {
+  color: var(--accent);
+  border-color: rgba(174, 79, 44, 0.5);
+}
+
+.chord-card__nav:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chord-card__nav svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chord-card__variant {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .chord-diagram {
   display: flex;
   justify-content: center;
@@ -494,9 +568,19 @@
   }
 }
 
+/* Touch screens have no hover state, so keep the shape chevrons visible. */
+@media (hover: none) {
+  .chord-card__nav {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .search-box,
   .chord-card,
+  .chord-card__nav,
   .example-chip {
     transition: none;
   }
