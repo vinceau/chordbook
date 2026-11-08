@@ -224,7 +224,7 @@ function App() {
         </div>
 
         <h1 className="site-title">
-          {INSTRUMENTS[instrument].label} chords, <em>at a glance.</em>
+          Chords, <em>at a glance.</em>
         </h1>
         <p className="site-tagline">
           Type chord names separated by spaces. The diagrams update as you
