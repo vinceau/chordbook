@@ -17,12 +17,6 @@ function readInstrument(value: string | null): Instrument {
   return value === 'ukulele' ? 'ukulele' : 'guitar'
 }
 
-const PRESETS = [
-  { label: 'C G Am F', value: 'C G Am F' },
-  { label: 'Cmaj7 Am7 Dm7 G7', value: 'Cmaj7 Am7 Dm7 G7' },
-  { label: 'C#m E B A', value: 'C#m E B A' },
-]
-
 interface UrlState {
   /** The raw chord names, as they appear in the search box. */
   input: string
@@ -268,20 +262,6 @@ function App() {
               <CloseIcon />
             </button>
           ) : null}
-        </div>
-
-        <div className="examples" aria-label="Example chord progressions">
-          <span className="examples__label">Try</span>
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.value}
-              className="example-chip"
-              type="button"
-              onClick={() => choosePreset(preset.value)}
-            >
-              {preset.label}
-            </button>
-          ))}
         </div>
       </header>
 

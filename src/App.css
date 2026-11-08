@@ -172,47 +172,6 @@
   height: 16px;
 }
 
-.examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  align-items: center;
-  justify-content: center;
-  margin: 15px auto 0;
-}
-
-.examples__label {
-  margin-right: 2px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.example-chip {
-  padding: 6px 11px;
-  color: var(--ink-soft);
-  font-size: 12.5px;
-  background: rgba(255, 253, 248, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    color 140ms ease,
-    border-color 140ms ease,
-    background-color 140ms ease,
-    transform 140ms ease;
-}
-
-.example-chip:hover {
-  color: var(--accent);
-  background: var(--card);
-  border-color: rgba(174, 79, 44, 0.45);
-  transform: translateY(-1px);
-}
-
-.example-chip:focus-visible,
 .search-box__clear:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
