@@ -20,11 +20,14 @@ export type ChordQuality =
   | '11'
   | 'nc'
 
+/** Finger used on a string: 1-4, 0 when no finger is used, or "T" for the thumb. */
+export type ChordFinger = number | 'T'
+
 interface RawChordVoicing {
   /** Six absolute fret values, low E to high E. 0 is open, -1 is muted. */
   frets: number[]
-  /** Finger numbers (1-4) aligned with `frets`, 0 when no finger is used. */
-  fingers?: number[]
+  /** Finger for each string, aligned with `frets`. */
+  fingers?: ChordFinger[]
   /** Absolute frets held as a barre. */
   barres?: number[]
 }
@@ -48,6 +51,8 @@ export interface ChordShape {
   frets: number[]
   /** Frets (relative to `base`) that are held as a barre. */
   barres: number[]
+  /** Finger used on each string, aligned with `frets`. */
+  fingers: ChordFinger[]
 }
 
 export interface ResolvedChord {
@@ -306,6 +311,7 @@ function shapeFromVoicing(voicing: RawChordVoicing): ChordShape {
     barres: (barres ?? [])
       .map((barre) => barre - base + 1)
       .filter((barre) => barre > 0),
+    fingers: frets.map((_, index) => voicing.fingers?.[index] ?? 0),
   }
 }
 
@@ -359,6 +365,7 @@ export function resolveChord(input: string): ResolvedChord {
           base: 1,
           frets: [-1, -1, -1, -1, -1, -1],
           barres: [],
+          fingers: [0, 0, 0, 0, 0, 0],
         },
       ],
     }
