@@ -283,12 +283,6 @@ function App() {
             </button>
           ))}
         </div>
-
-        <p className="alias-note">
-          Alias friendly: capital <strong>M</strong> is major, lowercase{' '}
-          <strong>m</strong> is minor. <code>CM7</code> becomes{' '}
-          <code>Cmaj7</code>.
-        </p>
       </header>
 
       <main className="content">
