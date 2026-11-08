@@ -41,8 +41,6 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          VITE_BASE: /chordbook/
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
