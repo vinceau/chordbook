@@ -227,8 +227,7 @@ function App() {
           Chords, <em>at a glance.</em>
         </h1>
         <p className="site-tagline">
-          Type chord names separated by spaces. The diagrams update as you
-          type.
+          Start by typing some chord names separated by spaces.
         </p>
 
         <div className="search-box">
