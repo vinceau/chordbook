@@ -1,10 +1,10 @@
 # Chordbook
 
-A small guitar chord viewer built with React, TypeScript and Vite. Type a
-space-separated list of chord names and the chord diagrams update as you type.
-Hover a chord and use the chevrons to step through alternative voicings. The
-current list and the selected voicings are kept in the URL, so the page can be
-bookmarked or shared.
+A small guitar and ukulele chord viewer built with React, TypeScript and
+Vite. Type a space-separated list of chord names and the chord diagrams
+update as you type. Hover a chord and use the chevrons to step through
+alternative voicings. The current list and the selected voicings are kept in
+the URL, so the page can be bookmarked or shared.
 
 ![Screenshot of Chordbook](./screenshot.png)
 
@@ -39,21 +39,24 @@ npm run preview
 - **Shareable URLs** — e.g. `/?chords=C,G,Am,F` (the comma-separated value is
   URL-encoded as needed, so `C#` appears as `C%23`). Selected voicings are
   stored alongside it, e.g. `/?chords=C,G,Am,F&variant=1,0,0,2`.
+- **Ukulele mode** — the dropdown next to “Chord shapes” switches between
+  guitar and ukulele shapes. Guitar is the default; the choice is kept in the
+  URL as `?instrument=ukulele`.
 - **Responsive layout** — diagrams are rendered with
   [SVGuitar](https://github.com/omnibrain/svguitar).
 
 ## Chord data
 
 All shapes come straight from the
-[chords-db](https://github.com/tabsy-gr/chords-db) guitar database (MIT),
-vendored in this repository as `src/data/guitar.json` from the
-[tabsy-gr fork](https://github.com/tabsy-gr/chords-db). That file is the
+[chords-db](https://github.com/tabsy-gr/chords-db) database (MIT), vendored in
+this repository as `src/data/guitar.json` and `src/data/ukulele.json` from the
+[tabsy-gr fork](https://github.com/tabsy-gr/chords-db). Those files are the
 source of truth for every chord diagram.
 
 `src/lib/chords.ts` maps chords-db suffixes to the qualities the search box
-understands, indexes the shapes by pitch class + quality (so enharmonic roots
-such as `C#` and `Db` share diagrams), and drops any voicing that does not
-spell the chord it is filed under.
+understands, indexes each instrument's shapes by pitch class + quality (so
+enharmonic roots such as `C#` and `Db` share diagrams), and drops any voicing
+that does not spell the chord it is filed under.
 
 ## Scripts
 

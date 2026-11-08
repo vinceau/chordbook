@@ -3,12 +3,19 @@ import './App.css'
 import { ChordCard } from './components/ChordCard'
 import {
   DEFAULT_CHORDS,
+  INSTRUMENTS,
   parseChordInput,
   resolveChordList,
+  type Instrument,
 } from './lib/chords'
 
 const CHORDS_PARAM = 'chords'
 const VARIANTS_PARAM = 'variant'
+const INSTRUMENT_PARAM = 'instrument'
+
+function readInstrument(value: string | null): Instrument {
+  return value === 'ukulele' ? 'ukulele' : 'guitar'
+}
 
 const PRESETS = [
   { label: 'C G Am F', value: 'C G Am F' },
@@ -21,6 +28,8 @@ interface UrlState {
   input: string
   /** Selected shape per chord, matched to the chord list by position. */
   variants: number[]
+  /** Which instrument's shapes to show. */
+  instrument: Instrument
 }
 
 function readStateFromUrl(): UrlState {
@@ -37,10 +46,18 @@ function readStateFromUrl(): UrlState {
     return Number.isInteger(variant) && variant > 0 ? variant : 0
   })
 
-  return { input, variants }
+  return {
+    input,
+    variants,
+    instrument: readInstrument(params.get(INSTRUMENT_PARAM)),
+  }
 }
 
-function writeStateToUrl(input: string, variants: number[]) {
+function writeStateToUrl(
+  input: string,
+  variants: number[],
+  instrument: Instrument,
+) {
   const params = new URLSearchParams(window.location.search)
   const tokens = parseChordInput(input)
 
@@ -59,6 +76,12 @@ function writeStateToUrl(input: string, variants: number[]) {
     params.set(VARIANTS_PARAM, selected.join(','))
   } else {
     params.delete(VARIANTS_PARAM)
+  }
+
+  if (instrument === 'ukulele') {
+    params.set(INSTRUMENT_PARAM, instrument)
+  } else {
+    params.delete(INSTRUMENT_PARAM)
   }
 
   const query = params.toString().replace(/%2C/g, ',')
@@ -131,13 +154,17 @@ function EmptyState() {
 }
 
 function App() {
-  const [{ input, variants }, setUrlState] = useState(readStateFromUrl)
+  const [{ input, variants, instrument }, setUrlState] =
+    useState(readStateFromUrl)
   const inputRef = useRef<HTMLInputElement>(null)
-  const chords = useMemo(() => resolveChordList(input), [input])
+  const chords = useMemo(
+    () => resolveChordList(input, instrument),
+    [input, instrument],
+  )
 
   useEffect(() => {
-    writeStateToUrl(input, variants)
-  }, [input, variants])
+    writeStateToUrl(input, variants, instrument)
+  }, [input, variants, instrument])
 
   useEffect(() => {
     const handlePopState = () => setUrlState(readStateFromUrl())
@@ -155,12 +182,25 @@ function App() {
       const nextTokens = parseChordInput(value)
 
       return {
+        ...state,
         input: value,
         variants: nextTokens.map((token, index) =>
           previousTokens[index] === token ? (state.variants[index] ?? 0) : 0,
         ),
       }
     })
+  }
+
+  /**
+   * The two instruments have different voicing lists, so start each chord
+   * over at its first shape when the instrument changes.
+   */
+  const changeInstrument = (next: Instrument) => {
+    setUrlState((state) => ({
+      ...state,
+      instrument: next,
+      variants: parseChordInput(state.input).map(() => 0),
+    }))
   }
 
   const changeVariant = (index: number, variant: number) => {
@@ -195,7 +235,7 @@ function App() {
         </div>
 
         <h1 className="site-title">
-          Guitar chords, <em>at a glance.</em>
+          {INSTRUMENTS[instrument].label} chords, <em>at a glance.</em>
         </h1>
         <p className="site-tagline">
           Type chord names separated by spaces. The diagrams update as you
@@ -256,9 +296,22 @@ function App() {
           <>
             <div className="content__heading">
               <h2>Chord shapes</h2>
-              <span className="content__count" aria-live="polite">
-                {chords.length} {chords.length === 1 ? 'chord' : 'chords'}
-              </span>
+              <label className="instrument-picker">
+                <span className="visually-hidden">Instrument</span>
+                <select
+                  className="instrument-picker__select"
+                  value={instrument}
+                  onChange={(event) =>
+                    changeInstrument(event.target.value as Instrument)
+                  }
+                >
+                  {Object.entries(INSTRUMENTS).map(([value, config]) => (
+                    <option key={value} value={value}>
+                      {config.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
             <div className="chord-grid">
               {chords.map((chord, index) => (
