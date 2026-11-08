@@ -466,6 +466,11 @@
   overflow: visible;
 }
 
+.chord-diagram svg text.finger,
+.chord-diagram svg text.barre-text {
+  font-weight: bold;
+}
+
 .chord-card__fallback {
   display: grid;
   width: 106px;

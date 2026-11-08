@@ -121,6 +121,7 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
         backgroundColor: 'transparent',
         color: '#2c2721',
         fingerColor: '#b74f2d',
+        fingerTextSize: 26,
         fingerSize: 0.64,
         strokeWidth: 2.4,
         nutWidth: 9,
