@@ -111,11 +111,23 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
       ...shape.frets.filter((fret) => fret > 0),
     )
 
+    // SVGuitar lays every chart out in a fixed 400-unit-wide box and derives
+    // all spacing from the gap between strings. At a fixed display width a
+    // four-string instrument would therefore get wider strings and a much
+    // taller chart than a six-string one. Keep the string gap — and with it
+    // the fret spacing, dots and labels — the same for both by widening the
+    // side padding as the string count drops.
+    const strings = shape.frets.length
+    const guitarStrings = 6
+    const guitarSidePadding = 0.18
+    const stringGap = (1 - 2 * guitarSidePadding) / (guitarStrings - 1)
+    const sidePadding = Math.max(0, (1 - stringGap * (strings - 1)) / 2)
+
     const chart = new SVGuitarChord(container)
 
     chart
       .configure({
-        strings: 6,
+        strings,
         frets: Math.max(highestFret, 4),
         tuning: [],
         backgroundColor: 'transparent',
@@ -126,7 +138,7 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
         strokeWidth: 2.4,
         nutWidth: 9,
         fretSize: 1.45,
-        sidePadding: 0.18,
+        sidePadding,
         emptyStringIndicatorSize: 0.55,
         fretLabelFontSize: 34,
         fontFamily:

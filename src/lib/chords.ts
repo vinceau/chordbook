@@ -1,4 +1,21 @@
-import rawChordsDb from '../data/guitar.json'
+import rawGuitarDb from '../data/guitar.json'
+import rawUkuleleDb from '../data/ukulele.json'
+
+export type Instrument = 'guitar' | 'ukulele'
+
+export interface InstrumentConfig {
+  /** Name shown in the instrument picker. */
+  label: string
+  /** Pitch class of each open string, from the lowest string up. */
+  tuning: number[]
+}
+
+export const INSTRUMENTS: Record<Instrument, InstrumentConfig> = {
+  // Low E, A, D, G, B, high E.
+  guitar: { label: 'Guitar', tuning: [4, 9, 2, 7, 11, 4] },
+  // Reentrant G, C, E, A.
+  ukulele: { label: 'Ukulele', tuning: [7, 0, 4, 9] },
+}
 
 export type ChordQuality =
   | 'major'
@@ -24,7 +41,7 @@ export type ChordQuality =
 export type ChordFinger = number | 'T'
 
 interface RawChordVoicing {
-  /** Six absolute fret values, low E to high E. 0 is open, -1 is muted. */
+  /** Absolute fret values, from the lowest string up. 0 is open, -1 is muted. */
   frets: number[]
   /** Finger for each string, aligned with `frets`. */
   fingers?: ChordFinger[]
@@ -47,7 +64,7 @@ interface RawChordsDb {
 export interface ChordShape {
   /** The first fret shown in the diagram. */
   base: number
-  /** Six fret values, relative to `base`, low E to high E. */
+  /** Fret values, relative to `base`, from the lowest string up. */
   frets: number[]
   /** Frets (relative to `base`) that are held as a barre. */
   barres: number[]
@@ -64,8 +81,6 @@ export interface ResolvedChord {
   shapes: ChordShape[]
   error?: 'unrecognized' | 'missing'
 }
-
-const chordsDb = rawChordsDb as unknown as RawChordsDb
 
 const LETTER_SEMITONES: Record<string, number> = {
   C: 0,
@@ -140,9 +155,6 @@ const QUALITY_INTERVALS: Record<ChordQuality, number[]> = {
   '11': [0, 2, 4, 5, 7, 10],
   nc: [],
 }
-
-/** Open strings, low E to high E, as pitch classes. */
-const TUNING = [4, 9, 2, 7, 11, 4]
 
 /**
  * Lowercase aliases. Uppercase "M" is handled before this table so that
@@ -279,6 +291,7 @@ function spellsChord(
   shape: ChordShape,
   root: number,
   quality: ChordQuality,
+  tuning: number[],
 ): boolean {
   const allowed = new Set(
     QUALITY_INTERVALS[quality].map((interval) => (root + interval) % 12),
@@ -287,7 +300,7 @@ function spellsChord(
   return shape.frets.every((fret, string) => {
     if (fret < 0) return true
     const absoluteFret = fret === 0 ? 0 : shape.base + fret - 1
-    return allowed.has((TUNING[string] + absoluteFret) % 12)
+    return allowed.has((tuning[string] + absoluteFret) % 12)
   })
 }
 
@@ -316,13 +329,17 @@ function shapeFromVoicing(voicing: RawChordVoicing): ChordShape {
 }
 
 /**
- * Index every shape in the library by pitch class + quality. Enharmonic
- * spellings such as C#/Db and A#/Bb therefore resolve to the same diagrams.
+ * Index every shape in one instrument's library by pitch class + quality.
+ * Enharmonic spellings such as C#/Db and A#/Bb therefore resolve to the same
+ * diagrams.
  */
-const shapesByNoteAndQuality = (() => {
+function indexShapes(
+  db: RawChordsDb,
+  tuning: number[],
+): Map<string, ChordShape[]> {
   const index = new Map<string, ChordShape[]>()
 
-  for (const entries of Object.values(chordsDb.chords)) {
+  for (const entries of Object.values(db.chords)) {
     for (const entry of entries) {
       const quality = QUALITY_BY_SUFFIX[entry.suffix]
       if (!quality) continue
@@ -336,7 +353,7 @@ const shapesByNoteAndQuality = (() => {
       for (const voicing of entry.voicings) {
         const shape = shapeFromVoicing(voicing)
 
-        if (!spellsChord(shape, root, quality)) continue
+        if (!spellsChord(shape, root, quality, tuning)) continue
         if (shapes.some((existing) => isSameShape(existing, shape))) continue
 
         shapes.push(shape)
@@ -347,7 +364,18 @@ const shapesByNoteAndQuality = (() => {
   }
 
   return index
-})()
+}
+
+const shapesByInstrument: Record<Instrument, Map<string, ChordShape[]>> = {
+  guitar: indexShapes(
+    rawGuitarDb as unknown as RawChordsDb,
+    INSTRUMENTS.guitar.tuning,
+  ),
+  ukulele: indexShapes(
+    rawUkuleleDb as unknown as RawChordsDb,
+    INSTRUMENTS.ukulele.tuning,
+  ),
+}
 
 export const DEFAULT_CHORDS = 'C G Am F'
 
@@ -355,7 +383,12 @@ export function parseChordInput(input: string): string[] {
   return input.trim().split(/\s+/).filter(Boolean)
 }
 
-export function resolveChord(input: string): ResolvedChord {
+export function resolveChord(
+  input: string,
+  instrument: Instrument = 'guitar',
+): ResolvedChord {
+  const strings = INSTRUMENTS[instrument].tuning.length
+
   if (/^(NC|N\.C\.)$/i.test(input)) {
     return {
       input,
@@ -363,9 +396,9 @@ export function resolveChord(input: string): ResolvedChord {
       shapes: [
         {
           base: 1,
-          frets: [-1, -1, -1, -1, -1, -1],
+          frets: Array<number>(strings).fill(-1),
           barres: [],
-          fingers: [0, 0, 0, 0, 0, 0],
+          fingers: Array<number>(strings).fill(0),
         },
       ],
     }
@@ -380,7 +413,7 @@ export function resolveChord(input: string): ResolvedChord {
     return { input, displayName: parsed.displayName, shapes: [], error: 'missing' }
   }
 
-  const shapes = shapesByNoteAndQuality.get(
+  const shapes = shapesByInstrument[instrument].get(
     `${parsed.pitchClass}:${parsed.quality}`,
   )
 
@@ -395,6 +428,9 @@ export function resolveChord(input: string): ResolvedChord {
   }
 }
 
-export function resolveChordList(input: string): ResolvedChord[] {
-  return parseChordInput(input).map(resolveChord)
+export function resolveChordList(
+  input: string,
+  instrument: Instrument = 'guitar',
+): ResolvedChord[] {
+  return parseChordInput(input).map((name) => resolveChord(name, instrument))
 }
