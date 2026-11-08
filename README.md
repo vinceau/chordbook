@@ -33,6 +33,9 @@ npm run preview
 - **Chord variants** — every chord has several voicings. Hover a card to reveal
   small left/right chevrons and step through them; the dots underneath show
   which voicing you are looking at.
+- **Fingering** — every dot is labelled with the finger that holds the note
+  (1–4, `T` for the thumb), and a barre is labelled with the finger that bars
+  it.
 - **Shareable URLs** — e.g. `/?chords=C,G,Am,F` (the comma-separated value is
   URL-encoded as needed, so `C#` appears as `C%23`). Selected voicings are
   stored alongside it, e.g. `/?chords=C,G,Am,F&variant=1,0,0,2`.

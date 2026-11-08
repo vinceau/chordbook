@@ -68,7 +68,11 @@ function barresFromFrets(
   })
 }
 
-function toFingers(frets: number[], barres: BarreCandidate[]): Finger[] {
+function toFingers(
+  frets: number[],
+  barres: BarreCandidate[],
+  fingers: ChordFinger[],
+): Finger[] {
   return frets
     .map((fret, index): Finger | null => {
       const string = frets.length - index
@@ -84,7 +88,9 @@ function toFingers(frets: number[], barres: BarreCandidate[]): Finger[] {
       )
       if (coveredByBarre) return null
 
-      return [string, fret]
+      // Label the dot with the finger that holds the note.
+      const finger = fingers[index] ?? 0
+      return finger === 0 ? [string, fret] : [string, fret, String(finger)]
     })
     .filter((finger): finger is Finger => finger !== null)
 }
@@ -127,8 +133,14 @@ export function ChordDiagram({ shape, name }: ChordDiagramProps) {
         svgTitle: `${name} chord diagram`,
       })
       .chord({
-        fingers: toFingers(shape.frets, barres),
-        barres,
+        fingers: toFingers(shape.frets, barres, shape.fingers),
+        barres: barres.map(({ fret, fromString, toString, finger }) => ({
+          fret,
+          fromString,
+          toString,
+          // The barre is held by one finger; label it with that number.
+          text: finger === 0 ? undefined : String(finger),
+        })),
         position: shape.base,
       })
       .draw()
