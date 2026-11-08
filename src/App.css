@@ -49,7 +49,6 @@
 
 .site-header {
   width: 100%;
-  max-width: 780px;
   margin: 0 auto;
   text-align: center;
 }
@@ -87,7 +86,6 @@
 }
 
 .site-tagline {
-  max-width: 480px;
   margin: 18px auto 0;
   color: var(--muted);
   font-size: 15px;
