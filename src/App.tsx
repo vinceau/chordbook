@@ -208,11 +208,6 @@ function App() {
     })
   }
 
-  const choosePreset = (value: string) => {
-    setInput(value)
-    inputRef.current?.focus()
-  }
-
   const clearInput = () => {
     setInput('')
     inputRef.current?.focus()
