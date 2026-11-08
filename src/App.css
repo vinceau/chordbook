@@ -446,8 +446,7 @@
 }
 
 .chord-card__dot--active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ink);
   transform: scale(1.15);
 }
 
