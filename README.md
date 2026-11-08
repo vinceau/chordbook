@@ -42,14 +42,15 @@ npm run preview
 ## Chord data
 
 All shapes come straight from the
-[chords-db](https://github.com/tombatossals/chords-db) guitar database (MIT),
-imported from the pinned `@tombatossals/chords-db` package. No chord data is
-stored in this repository.
+[chords-db](https://github.com/tabsy-gr/chords-db) guitar database (MIT),
+vendored in this repository as `src/data/guitar.json` from the
+[tabsy-gr fork](https://github.com/tabsy-gr/chords-db). That file is the
+source of truth for every chord diagram.
 
 `src/lib/chords.ts` maps chords-db suffixes to the qualities the search box
 understands, indexes the shapes by pitch class + quality (so enharmonic roots
-such as `C#` and `Db` share diagrams), and drops the handful of positions that
-do not spell the chord they are filed under.
+such as `C#` and `Db` share diagrams), and drops any voicing that does not
+spell the chord it is filed under.
 
 ## Scripts
 

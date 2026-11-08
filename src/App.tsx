@@ -280,7 +280,7 @@ function App() {
         <p>
           Shapes from{' '}
           <a
-            href="https://github.com/tombatossals/chords-db"
+            href="https://github.com/tabsy-gr/chords-db"
             target="_blank"
             rel="noreferrer"
           >

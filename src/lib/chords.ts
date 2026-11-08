@@ -1,4 +1,4 @@
-import rawChordsDb from '@tombatossals/chords-db/lib/guitar.json'
+import rawChordsDb from '../data/guitar.json'
 
 export type ChordQuality =
   | 'major'
@@ -20,12 +20,12 @@ export type ChordQuality =
   | '11'
   | 'nc'
 
-interface RawChordPosition {
-  /** Six fret values, relative to `baseFret`, low E to high E. */
+interface RawChordVoicing {
+  /** Six absolute fret values, low E to high E. 0 is open, -1 is muted. */
   frets: number[]
-  /** The first fret shown in the diagram. */
-  baseFret?: number
-  /** Barre frets, relative to `baseFret`. */
+  /** Finger numbers (1-4) aligned with `frets`, 0 when no finger is used. */
+  fingers?: number[]
+  /** Absolute frets held as a barre. */
   barres?: number[]
 }
 
@@ -34,7 +34,7 @@ interface RawChordEntry {
   key: string
   /** chords-db name for the chord quality, e.g. "maj7". */
   suffix: string
-  positions: RawChordPosition[]
+  voicings: RawChordVoicing[]
 }
 
 interface RawChordsDb {
@@ -44,7 +44,7 @@ interface RawChordsDb {
 export interface ChordShape {
   /** The first fret shown in the diagram. */
   base: number
-  /** Six fret values, from the low E string to the high E string. */
+  /** Six fret values, relative to `base`, low E to high E. */
   frets: number[]
   /** Frets (relative to `base`) that are held as a barre. */
   barres: number[]
@@ -267,8 +267,8 @@ function isSameShape(a: ChordShape, b: ChordShape): boolean {
 }
 
 /**
- * A handful of chords-db positions do not spell the chord they are filed
- * under. Check every sounded note against the chord tones and skip the rest.
+ * A handful of voicings do not spell the chord they are filed under. Check
+ * every sounded note against the chord tones and skip the rest.
  */
 function spellsChord(
   shape: ChordShape,
@@ -287,7 +287,30 @@ function spellsChord(
 }
 
 /**
- * Index every shape in chords-db by pitch class + quality. Enharmonic
+ * The library stores absolute frets, but the diagram is drawn from a base
+ * fret. Voicings that fit within the first four frets are drawn from the nut;
+ * higher ones start at their lowest fretted note. Open and muted strings are
+ * left alone, the rest are made relative to the base (this is exactly what
+ * the fork's own `toChordDiagram()` does).
+ */
+function shapeFromVoicing(voicing: RawChordVoicing): ChordShape {
+  const { frets, barres } = voicing
+  const base =
+    Math.max(...frets) > 4
+      ? Math.min(...frets.filter((fret) => fret > 0))
+      : 1
+
+  return {
+    base,
+    frets: frets.map((fret) => (fret > 0 ? fret - base + 1 : fret)),
+    barres: (barres ?? [])
+      .map((barre) => barre - base + 1)
+      .filter((barre) => barre > 0),
+  }
+}
+
+/**
+ * Index every shape in the library by pitch class + quality. Enharmonic
  * spellings such as C#/Db and A#/Bb therefore resolve to the same diagrams.
  */
 const shapesByNoteAndQuality = (() => {
@@ -304,12 +327,8 @@ const shapesByNoteAndQuality = (() => {
       const id = `${root}:${quality}`
       const shapes = index.get(id) ?? []
 
-      for (const position of entry.positions) {
-        const shape: ChordShape = {
-          base: position.baseFret ?? 1,
-          frets: position.frets,
-          barres: position.barres ?? [],
-        }
+      for (const voicing of entry.voicings) {
+        const shape = shapeFromVoicing(voicing)
 
         if (!spellsChord(shape, root, quality)) continue
         if (shapes.some((existing) => isSameShape(existing, shape))) continue
