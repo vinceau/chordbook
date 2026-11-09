@@ -71,10 +71,17 @@ prerendered — the default page. Shared links such as
 `/?chords=C,G,Am,F&instrument=ukulele` carry their state in the query string,
 so they are rendered on the client instead.
 
+Assets are referenced with relative URLs (`./assets/...`, `./favicon.svg`), so
+`dist` also works when mounted under a subpath such as
+`https://example.com/chordbook/`. Nothing has to know the deploy path at build
+time. The app keeps all state in the query string, so relative URLs stay
+correct on deep links.
+
 `index.html` also carries the canonical URL, Open Graph/Twitter metadata and
 Schema.org JSON-LD for https://chordbook.vince.id.au/, and `public/robots.txt`
-points at `public/sitemap.xml`. Update those files if the site moves, and
-submit the sitemap to Google Search Console or Bing Webmaster Tools.
+points at `public/sitemap.xml`. Those have to name the real deployment URL, so
+update them if the site moves, and submit the sitemap to Google Search Console
+or Bing Webmaster Tools.
 
 ## Scripts
 
