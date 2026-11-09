@@ -26,8 +26,8 @@ interface UrlState {
   instrument: Instrument
 }
 
-function readStateFromUrl(): UrlState {
-  const params = new URLSearchParams(window.location.search)
+function readStateFromUrl(search: string): UrlState {
+  const params = new URLSearchParams(search)
   const value = params.get(CHORDS_PARAM)
   const input =
     value === null
@@ -147,9 +147,19 @@ function EmptyState() {
   )
 }
 
-function App() {
-  const [{ input, variants, instrument }, setUrlState] =
-    useState(readStateFromUrl)
+interface AppProps {
+  /**
+   * Query string to read the first render from. The prerenderer passes the
+   * search string of the page it is generating; in the browser this defaults
+   * to the current URL.
+   */
+  initialSearch?: string
+}
+
+function App({ initialSearch }: AppProps) {
+  const [{ input, variants, instrument }, setUrlState] = useState(() =>
+    readStateFromUrl(initialSearch ?? window.location.search),
+  )
   const inputRef = useRef<HTMLInputElement>(null)
   const chords = useMemo(
     () => resolveChordList(input, instrument),
@@ -161,7 +171,8 @@ function App() {
   }, [input, variants, instrument])
 
   useEffect(() => {
-    const handlePopState = () => setUrlState(readStateFromUrl())
+    const handlePopState = () =>
+      setUrlState(readStateFromUrl(window.location.search))
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])

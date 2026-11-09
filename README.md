@@ -58,24 +58,39 @@ understands, indexes each instrument's shapes by pitch class + quality (so
 enharmonic roots such as `C#` and `Db` share diagrams), and drops any voicing
 that does not spell the chord it is filed under.
 
+## Static rendering
+
+`npm run build` does not ship an empty `<div id="root">`. After the client
+build, `src/entry-server.tsx` is built for Node with Vite's SSR mode and
+`scripts/prerender.mjs` renders the default page into `dist/index.html`.
+Crawlers and link previews therefore see the heading, chord list and footer
+without running any JavaScript.
+
+The page still hydrates in the browser, but only for the URL that was
+prerendered — the default page. Shared links such as
+`/?chords=C,G,Am,F&instrument=ukulele` carry their state in the query string,
+so they are rendered on the client instead.
+
+`index.html` also carries the canonical URL, Open Graph/Twitter metadata and
+Schema.org JSON-LD for https://chordbook.vince.id.au/, and `public/robots.txt`
+points at `public/sitemap.xml`. Update those files if the site moves, and
+submit the sitemap to Google Search Console or Bing Webmaster Tools.
+
 ## Scripts
 
-| Command           | Description              |
-| ----------------- | ------------------------ |
-| `npm run dev`     | Start the Vite dev server |
-| `npm run build`   | Type-check and build      |
-| `npm run preview` | Preview the production build |
-| `npm run lint`    | Run Oxlint                |
+| Command           | Description                        |
+| ----------------- | ---------------------------------- |
+| `npm run dev`     | Start the Vite dev server          |
+| `npm run build`   | Type-check, build and prerender    |
+| `npm run preview` | Preview the production build       |
+| `npm run lint`    | Run Oxlint                         |
 
 ## Deployment
 
 Pushing to `master` runs
 `.github/workflows/deploy.yml`, builds the app, and deploys `dist` to GitHub
-Pages. The workflow sets `VITE_BASE=/chordbook/` so assets resolve correctly
-under the project Pages URL:
+Pages at:
 
-https://vince.id.au/chordbook/
-
-(`https://vinceau.github.io/chordbook/` redirects there.)
+https://chordbook.vince.id.au/
 
 You can also trigger the workflow manually from the Actions tab.

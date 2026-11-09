@@ -8,11 +8,59 @@
       name="description"
       content="A simple guitar and ukulele chord viewer. Type chord names and see the shapes instantly."
     />
+    <link rel="canonical" href="https://chordbook.vince.id.au/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Chordbook" />
+    <meta property="og:url" content="https://chordbook.vince.id.au/" />
+    <meta
+      property="og:title"
+      content="Chordbook — Guitar &amp; Ukulele Chord Viewer"
+    />
+    <meta
+      property="og:description"
+      content="A simple guitar and ukulele chord viewer. Type chord names and see the shapes instantly."
+    />
+    <meta
+      property="og:image"
+      content="https://chordbook.vince.id.au/screenshot.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1440" />
+    <meta property="og:image:height" content="1000" />
+    <meta
+      property="og:image:alt"
+      content="Chord diagrams for guitar and ukulele, drawn by Chordbook."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Chordbook — Guitar &amp; Ukulele Chord Viewer"
+    />
+    <meta
+      name="twitter:description"
+      content="A simple guitar and ukulele chord viewer. Type chord names and see the shapes instantly."
+    />
+    <meta
+      name="twitter:image"
+      content="https://chordbook.vince.id.au/screenshot.png"
+    />
     <meta name="theme-color" content="#f5efe3" />
     <title>Chordbook — Guitar &amp; Ukulele Chord Viewer</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Chordbook",
+        "url": "https://chordbook.vince.id.au/",
+        "description": "A simple guitar and ukulele chord viewer. Type chord names and see the shapes instantly.",
+        "applicationCategory": "MusicApplication",
+        "operatingSystem": "Any",
+        "isAccessibleForFree": true
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><!--ssr-outlet--></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

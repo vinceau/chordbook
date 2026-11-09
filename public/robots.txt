@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chordbook.vince.id.au/sitemap.xml
