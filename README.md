@@ -30,9 +30,9 @@ npm run preview
   `C+` are also understood.
 - **Enharmonic roots** — `C#` and `Db`, `A#` and `Bb`, and other equivalents
   share shapes.
-- **Chord variants** — every chord has several voicings. Hover a card to reveal
-  small left/right chevrons and step through them; the dots underneath show
-  which voicing you are looking at.
+- **Chord variants** — every chord has several voicings. Hover a card (or tap
+  it on a touch screen) to reveal small left/right chevrons and step through
+  them; the dots underneath show which voicing you are looking at.
 - **Fingering** — every dot is labelled with the finger that holds the note
   (1–4, `T` for the thumb), and a barre is labelled with the finger that bars
   it.

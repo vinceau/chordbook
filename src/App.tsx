@@ -325,7 +325,7 @@ function App({ initialSearch }: AppProps) {
           .
         </p>
         <p className="site-footer__hint">
-          Hover a chord for more voicings — your list lives in the URL.
+          Hover or tap a chord for more voicings — your list lives in the URL.
         </p>
       </footer>
     </div>

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ResolvedChord } from '../lib/chords'
 import { ChordDiagram } from './ChordDiagram'
 
@@ -37,12 +38,48 @@ export function ChordCard({ chord, variant, onVariantChange }: ChordCardProps) {
     shapeCount > 0 ? Math.min(Math.max(variant, 0), shapeCount - 1) : 0
   const shape = shapes[activeVariant]
 
+  const cardRef = useRef<HTMLElement>(null)
+  const [controlsVisible, setControlsVisible] = useState(false)
+
+  // Touch screens have no hover, so the chevrons are revealed by tapping the
+  // card instead. Hide them again once the tap moves outside it or focus
+  // leaves (for keyboard users).
+  useEffect(() => {
+    if (!controlsVisible) return
+
+    const hideIfOutside = (event: Event) => {
+      const target = event.target
+      if (target instanceof Node && !cardRef.current?.contains(target)) {
+        setControlsVisible(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', hideIfOutside)
+    document.addEventListener('focusin', hideIfOutside)
+    return () => {
+      document.removeEventListener('pointerdown', hideIfOutside)
+      document.removeEventListener('focusin', hideIfOutside)
+    }
+  }, [controlsVisible])
+
   const stepVariant = (offset: number) => {
     onVariantChange((activeVariant + offset + shapeCount) % shapeCount)
   }
 
+  const className = [
+    'chord-card',
+    error ? 'chord-card--error' : '',
+    controlsVisible ? 'chord-card--active' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <article className={`chord-card${error ? ' chord-card--error' : ''}`}>
+    <article
+      ref={cardRef}
+      className={className}
+      onClick={() => setControlsVisible(true)}
+    >
       <header className="chord-card__header">
         <h2 className="chord-card__name">{input}</h2>
         {hasAlias ? (

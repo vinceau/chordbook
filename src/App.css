@@ -355,8 +355,8 @@
   right: -5px;
 }
 
-.chord-card:hover .chord-card__nav,
-.chord-card:focus-within .chord-card__nav {
+.chord-card:focus-within .chord-card__nav,
+.chord-card--active .chord-card__nav {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(-50%) scale(1);
@@ -391,9 +391,22 @@
   transition: opacity 150ms ease;
 }
 
-.chord-card:hover .chord-card__dots,
-.chord-card:focus-within .chord-card__dots {
+.chord-card:focus-within .chord-card__dots,
+.chord-card--active .chord-card__dots {
   opacity: 1;
+}
+
+/* Touch screens have no hover; they reveal the controls by tapping a card. */
+@media (hover: hover) {
+  .chord-card:hover .chord-card__nav {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .chord-card:hover .chord-card__dots {
+    opacity: 1;
+  }
 }
 
 .chord-card__dot {
@@ -559,19 +572,6 @@
   .site-footer {
     flex-direction: column;
     margin-top: 38px;
-  }
-}
-
-/* Touch screens have no hover state, so keep the shape controls visible. */
-@media (hover: none) {
-  .chord-card__nav {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(-50%) scale(1);
-  }
-
-  .chord-card__dots {
-    opacity: 1;
   }
 }
 
