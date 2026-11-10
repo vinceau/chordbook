@@ -105,7 +105,7 @@ export function ChordCard({ chord, variant, onVariantChange, onRemove }: ChordCa
           event.stopPropagation()
           onRemove()
         }}
-        aria-label={`Remove ${input} from the chord list`}
+        title="Remove"
       >
         <CloseIcon />
       </button>
@@ -134,7 +134,7 @@ export function ChordCard({ chord, variant, onVariantChange, onRemove }: ChordCa
               className="chord-card__nav chord-card__nav--prev"
               type="button"
               onClick={() => stepVariant(-1)}
-              aria-label={`Previous shape for ${displayName}`}
+              title={`Previous shape for ${displayName}`}
             >
               <ChevronIcon direction="left" />
             </button>
@@ -142,7 +142,7 @@ export function ChordCard({ chord, variant, onVariantChange, onRemove }: ChordCa
               className="chord-card__nav chord-card__nav--next"
               type="button"
               onClick={() => stepVariant(1)}
-              aria-label={`Next shape for ${displayName}`}
+              title={`Next shape for ${displayName}`}
             >
               <ChevronIcon direction="right" />
             </button>
