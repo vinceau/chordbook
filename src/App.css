@@ -247,6 +247,7 @@
 }
 
 .chord-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -362,6 +363,45 @@
   transform: translateY(-50%) scale(1);
 }
 
+.chord-card__remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  place-items: center;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, color 140ms ease;
+}
+
+.chord-card__remove:hover {
+  color: var(--accent);
+  border-color: rgba(174, 79, 44, 0.5);
+}
+
+.chord-card__remove:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chord-card__remove svg {
+  width: 22px;
+  height: 22px;
+}
+
+.chord-card:focus-within .chord-card__remove,
+.chord-card--active .chord-card__remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .chord-card__nav:hover {
   color: var(--accent);
   border-color: rgba(174, 79, 44, 0.5);
@@ -402,6 +442,12 @@
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-50%) scale(1);
+  }
+
+  .chord-card:hover .chord-card__remove {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
   }
 
   .chord-card:hover .chord-card__dots {
@@ -579,6 +625,7 @@
   .search-box,
   .chord-card,
   .chord-card__nav,
+  .chord-card__remove,
   .chord-card__dot,
   .chord-card__dots,
   .example-chip {

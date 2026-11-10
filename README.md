@@ -33,6 +33,9 @@ npm run preview
 - **Chord variants** — every chord has several voicings. Hover a card (or tap
   it on a touch screen) to reveal small left/right chevrons and step through
   them; the dots underneath show which voicing you are looking at.
+- **Remove chords** — the same hover/tap reveals an ✕ in the card's top-right
+  corner that deletes that chord from the search box. The remaining cards keep
+  their selected voicings.
 - **Fingering** — every dot is labelled with the finger that holds the note
   (1–4, `T` for the thumb), and a barre is labelled with the finger that bars
   it.

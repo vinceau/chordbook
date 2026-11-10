@@ -219,6 +219,24 @@ function App({ initialSearch }: AppProps) {
     })
   }
 
+  /** Delete the chord at `index` from the search box, keeping the other
+   * chords' chosen shapes aligned to their new positions. */
+  const removeChord = (index: number) => {
+    setUrlState((state) => {
+      const tokens = parseChordInput(state.input)
+      if (index >= tokens.length) return state
+
+      return {
+        ...state,
+        input: tokens
+          .map((token, position) => (position === index ? null : token))
+          .filter((token): token is string => token !== null)
+          .join(' '),
+        variants: state.variants.filter((_, position) => position !== index),
+      }
+    })
+  }
+
   const clearInput = () => {
     setInput('')
     inputRef.current?.focus()
@@ -299,6 +317,7 @@ function App({ initialSearch }: AppProps) {
                   chord={chord}
                   variant={variants[index] ?? 0}
                   onVariantChange={(variant) => changeVariant(index, variant)}
+                  onRemove={() => removeChord(index)}
                 />
               ))}
             </div>

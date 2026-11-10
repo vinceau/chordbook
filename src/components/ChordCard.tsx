@@ -7,6 +7,7 @@ interface ChordCardProps {
   /** Index of the shape to show, clamped to the number of known shapes. */
   variant: number
   onVariantChange: (variant: number) => void
+  onRemove: () => void
 }
 
 const ERROR_LABELS: Record<NonNullable<ResolvedChord['error']>, string> = {
@@ -30,7 +31,22 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   )
 }
 
-export function ChordCard({ chord, variant, onVariantChange }: ChordCardProps) {
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="m5.5 5.5 9 9M14.5 5.5l-9 9" />
+    </svg>
+  )
+}
+
+export function ChordCard({ chord, variant, onVariantChange, onRemove }: ChordCardProps) {
   const { input, displayName, shapes, error } = chord
   const hasAlias = !error && displayName !== input
   const shapeCount = shapes.length
@@ -80,6 +96,19 @@ export function ChordCard({ chord, variant, onVariantChange }: ChordCardProps) {
       className={className}
       onClick={() => setControlsVisible(true)}
     >
+      <button
+        className="chord-card__remove"
+        type="button"
+        onClick={(event) => {
+          // The card's own click handler would just re-reveal the controls
+          // for a card that is about to unmount.
+          event.stopPropagation()
+          onRemove()
+        }}
+        aria-label={`Remove ${input} from the chord list`}
+      >
+        <CloseIcon />
+      </button>
       <header className="chord-card__header">
         <h2 className="chord-card__name">{input}</h2>
         {hasAlias ? (
